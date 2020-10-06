@@ -13,7 +13,7 @@ namespace WebApiTest.Controllers
     {
         private static readonly string[] Summaries = new[]
         {
-            "
+            "asd"
         };
 
         private readonly ILogger<WeatherForecastController> _logger;

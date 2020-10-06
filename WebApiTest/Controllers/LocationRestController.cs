@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApiTest.Filter;
 using WebApiTest.Models;
+using WebApiTest.Services;
+using WebApiTest.Wrappers;
 
 namespace WebApiTest.Controllers
 {
@@ -14,17 +17,27 @@ namespace WebApiTest.Controllers
     public class LocationRestController : ControllerBase
     {
         private readonly RestaurantContext _context;
+        private readonly IUriService uriService;
 
-        public LocationRestController(RestaurantContext context)
+        public LocationRestController(RestaurantContext context, IUriService uriService)
         {
             _context = context;
+            this.uriService = uriService;
         }
 
-        // GET: api/LocationRest
+        // GET: api/LocationRest?pageNumber=1&pageSize=5
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetLocationRestaurant()
+        public async Task<ActionResult<IEnumerable<object>>> GetAll([FromQuery] PaginationFilter filter)
         {
-            return await _context.LocationRest.Select(s => new { s.Id, city = s._city.Name, rest = s._restaurant.Name }).ToListAsync();
+            var route = Request.Path.Value;
+            var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+            var pagedData = await _context.LocationRest
+                .Skip((validFilter.PageNumber - 1) * validFilter.PageSize)
+                .Take(validFilter.PageSize)
+                .ToListAsync();
+            var totalRecords = await _context.LocationRest.CountAsync();
+            var pagedReponse = PaginationHelper.CreatePagedReponse(pagedData, validFilter, totalRecords, uriService, route);
+            return Ok(pagedReponse);
         }
 
         // GET: api/LocationRest/1
