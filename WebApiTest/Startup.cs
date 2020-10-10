@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.Swagger;
 using WebApiTest.Models;
 using WebApiTest.Services;
 
@@ -29,6 +30,7 @@ namespace WebApiTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Строка подключения к базе
             services.AddDbContext<RestaurantContext>(opt => 
             opt.UseSqlServer(@"Data Source=.\SQLEXPRESS;Initial Catalog=Restaurant;Integrated Security=True"));
 
@@ -41,7 +43,18 @@ namespace WebApiTest
                 return new UriService(uri);
             });
 
+
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "RestaurantAPI", Version = "v1" });
+            });
+
+
             services.AddControllers();
+
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,6 +64,17 @@ namespace WebApiTest
             {
                 app.UseDeveloperExceptionPage();
             }
+
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "RestaurantAPI V1");
+            });
+
+
+
+
 
             app.UseHttpsRedirection();
 

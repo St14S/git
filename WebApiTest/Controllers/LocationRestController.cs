@@ -57,18 +57,18 @@ namespace WebApiTest.Controllers
 
         // GET: api/LocationRest/city/Москва
         [HttpGet("city/{name}")]
-        public async Task<ActionResult<IEnumerable<object>>> GetLocationRestaurantByName(string name)
+        public async Task<ActionResult<IEnumerable<object>>> GetLocationRestaurantByName([FromQuery] PaginationFilter filter, string name)
         {
-            var locationRestaurant = await _context.LocationRest
+            var route = Request.Path.Value;
+            var validFilter = new PaginationFilter(filter.PageNumber, filter.PageSize);
+            var pagedData = await _context.LocationRest
                 .Where(w => w._city.Name == name)
-                .Select(s => new { s.Id, city = s._city.Name, rest = s._restaurant.Name }).ToListAsync();
-
-            if (locationRestaurant == null)
-            {
-                return NotFound();
-            }
-
-            return locationRestaurant;
+                .Skip((validFilter.PageNumber - 1) * validFilter.PageSize)
+                .Take(validFilter.PageSize)
+                .ToListAsync();
+            var totalRecords = await _context.LocationRest.CountAsync();
+            var pagedReponse = PaginationHelper.CreatePagedReponse(pagedData, validFilter, totalRecords, uriService, route);
+            return Ok(pagedReponse);
         }
 
         // PUT: api/LocationRest/5
