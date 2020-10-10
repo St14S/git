@@ -1,3 +1,3 @@
 # git
 
-Ссылка на описание методов API: https://app.swaggerhub.com/apis/WebApiTest/RestTest/1.0.0
+Для тестирования методов API: https://localhost:44312/swagger/index.html
